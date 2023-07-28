@@ -16,19 +16,20 @@ export default {
         chainID: args[2],
         causer: args[3],
         controller: args[4],
-        steamID: logParser.eventStore.controllers[args[4]].steamID
       };
 
-      const playerControllerObj = logParser.eventStore.controllers[returnData.controller]
+      const playerControllerObj = logParser.eventStore.controllers[returnData.controller];
 
       if (typeof playerControllerObj == 'undefined') {
         // Если squadjs был запущен после подключения игрока - контроллер игрока неизвестен
         return;
       }
 
+      returnData.steamID = playerControllerObj.steamID;
+
       if (!('lastApplyExplosiveDamage' in playerControllerObj)) {
         playerControllerObj.lastApplyExplosiveDamage = returnData.time;
-        playerControllerObj.countApplyExplosiveDamage = 0;
+        playerControllerObj.countApplyExplosiveDamage = 1;
         playerControllerObj.lastEmitTime = null;
         return;
       }
@@ -56,3 +57,4 @@ export default {
       }
     },
   };
+
