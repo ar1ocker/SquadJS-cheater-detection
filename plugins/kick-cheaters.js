@@ -22,7 +22,7 @@ export default class KickCheaters extends BasePlugin {
   }
 
   async kick_cheater({steamID}) {
-    this.server.rcon.kick(steamID, 'Автокик: подозрение на читы');
+    await this.server.rcon.kick(steamID, 'Автокик: подозрение на читы');
   }
 
   async mount() {
