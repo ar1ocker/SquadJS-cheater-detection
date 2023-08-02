@@ -41,7 +41,7 @@ export default {
       }
 
       // Если с момента предыдущего взрыва прошло меньше времени чем в должно
-      if ((playerControllerObj.lastApplyExplosiveDamage - returnData.time) < minTimeBetweenExplosive) {
+      if ((returnData.time - playerControllerObj.lastApplyExplosiveDamage) < minTimeBetweenExplosive) {
         playerControllerObj.countApplyExplosiveDamage++;
         playerControllerObj.lastApplyExplosiveDamage = returnData.time;
       } else {
