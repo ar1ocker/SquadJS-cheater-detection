@@ -35,7 +35,7 @@ export default class KickCheatersDiscord extends DiscordBasePlugin {
         `${steamID} will be kicked: registered ApplyExplosiveDamage exploit usage...`
     );
     try {
-      await this.server.rcon.kick(steamID, 'Подозрение на читы');
+      await this.server.rcon.kick(steamID, 'Автокик: подозрение на читы');
       this.verbose(
           1,
           `${steamID} was successfully kicked.`

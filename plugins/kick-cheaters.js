@@ -22,7 +22,23 @@ export default class KickCheaters extends BasePlugin {
   }
 
   async kick_cheater({steamID}) {
-    await this.server.rcon.kick(steamID, 'Автокик: подозрение на читы');
+    this.verbose(
+        1,
+        `${steamID} will be kicked: registered ApplyExplosiveDamage exploit usage...`
+    );
+    try {
+      await this.server.rcon.kick(steamID, 'Автокик: подозрение на читы');
+      this.verbose(
+          1,
+          `${steamID} was successfully kicked.`
+      )
+    } catch (err) {
+      this.verbose(
+          1,
+          `${steamID} was FAILED to kick.`,
+          err
+      )
+    }
   }
 
   async mount() {
