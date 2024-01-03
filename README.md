@@ -2,7 +2,7 @@
 
 Детект и кик читеров использующих ApplyExplosiveDamage спам на сервер
 
-Проверено на версии SquadJS 3.7.0
+Проверено на версии SquadJS 4.0.0 с патчем от https://github.com/fantinodavide/SquadJS/tree/eos-integration
 
 ## Настройка
 
