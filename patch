@@ -1,69 +1,67 @@
 diff --git a/core/log-parser/index.js b/core/log-parser/index.js
-index 2a91ebb..cbaeb71 100644
+index d504736..eab7ab8 100644
 --- a/core/log-parser/index.js
 +++ b/core/log-parser/index.js
-@@ -18,7 +18,13 @@ export default class LogParser extends EventEmitter {
-       disconnected: {}, // holding area, cleared on map change.
-       players: {}, // persistent data, steamid, controller, suffix.
+@@ -21,6 +21,12 @@ export default class LogParser extends EventEmitter {
+       connectionIdToSteamID: new Map(),
        session: {}, // old eventstore, nonpersistent data
--      clients: {} // used in the connection chain before we resolve a player.
-+      clients: {}, // used in the connection chain before we resolve a player.
-+      controllers: {}, // Последний пользователь у контроллера, хранение
-+      // последнего пользователя у контроллера позволяет избежать теоретической
+       clients: {}, // used in the connection chain before we resolve a player.
++      controllers: {}, // Последний игрок с контроллером, хранение
++      // последнего игрока с контроллером позволяет избежать теоретической
 +      // ошибки в случае если у разных пользователей было одно и то же название
 +      // контроллера в разное время, (.players хранит данные постоянно и
-+      // возможно раз в несколько дней контроллеры повторяются), очищается при
-+      // выходе пользователя с сервера
++      // возможно раз в несколько дней контроллеры повторяются, но я не проверял),
++      // очищается при выходе пользователя с сервера
+       lastConnection: {}, // used to store the last client connection data to then associate a steamid
+       joinRequests: []
      };
- 
-     this.linesPerMinute = 0;
 diff --git a/squad-server/log-parser/index.js b/squad-server/log-parser/index.js
-index 594734c..76e504f 100644
+index fa9b373..d3c1bf4 100644
 --- a/squad-server/log-parser/index.js
 +++ b/squad-server/log-parser/index.js
-@@ -19,6 +19,7 @@ import ServerTickRate from './server-tick-rate.js';
- import ClientConnected from './client-connected.js';
- import ClientLogin from './client-login.js';
- import PendingConnectionDestroyed from './pending-connection-destroyed.js';
-+import CheaterExplosive from './cheater-explosive.js';
- 
+@@ -25,6 +25,8 @@ import LoginRequest from './login-request.js';
+ import JoinRequest from './join-request.js';
+ import PlayerJoinSucceeded from './player-join-succeeded.js';
+ import CheckPermissionResolveEosid from './check-permission-resolve-eosid.js';
++import CheaterExplosive from './cheater-explosive.js'
++
  export default class SquadLogParser extends LogParser {
    constructor(options) {
-@@ -45,7 +46,8 @@ export default class SquadLogParser extends LogParser {
-       ServerTickRate,
-       ClientConnected,
-       ClientLogin,
--      PendingConnectionDestroyed
-+      PendingConnectionDestroyed,
+     super('SquadGame.log', options);
+@@ -56,7 +58,8 @@ export default class SquadLogParser extends LogParser {
+       LoginRequest,
+       JoinRequest,
+       PlayerJoinSucceeded,
+-      CheckPermissionResolveEosid
++      CheckPermissionResolveEosid,
 +      CheaterExplosive
      ];
    }
  }
 diff --git a/squad-server/log-parser/player-connected.js b/squad-server/log-parser/player-connected.js
-index 279257d..bdc8274 100644
+index 6568227..2b6eec0 100644
 --- a/squad-server/log-parser/player-connected.js
 +++ b/squad-server/log-parser/player-connected.js
-@@ -23,5 +23,11 @@ export default {
-       suffix: data.playerSuffix,
-       controller: data.controller
-     };
-+
+@@ -16,6 +16,11 @@ export default {
+     data.connection = joinRequestData.connection;
+     data.playerSuffix = joinRequestData.suffix;
+ 
 +    // Хранение последнего игрока у контроллера
-+    logParser.eventStore.controllers[data.controller] = {
++    logParser.eventStore.controllers[data.playercontroller] = {
 +      steamID: data.steamID,
 +    };
 +
-   }
- };
+     if (!logParser.eventStore.players[data.steamID])
+       logParser.eventStore.players[data.steamID] = {};
+     logParser.eventStore.players[data.steamID].controller = data.playercontroller;
 diff --git a/squad-server/log-parser/player-disconnected.js b/squad-server/log-parser/player-disconnected.js
-index 6df5e64..4df48b0 100644
+index 20ef010..13b9377 100644
 --- a/squad-server/log-parser/player-disconnected.js
 +++ b/squad-server/log-parser/player-disconnected.js
-@@ -11,6 +11,10 @@ export default {
-     };
+@@ -13,6 +13,9 @@ export default {
  
      logParser.eventStore.disconnected[data.steamID] = true;
-+
+ 
 +    // Очистка контроллера
 +    delete logParser.eventStore.controllers[data.playerController];
 +
