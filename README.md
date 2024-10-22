@@ -17,11 +17,11 @@ git clone https://github.com/ar1ocker/SquadJS-cheater-detection
 
 - Copy the file `log-parser/apply-explosive-damage-detector.js` to the folder `<path to squadjs on the server>/squad-server/log-parser/`
 
-- Copy the file `plugins/kick-cheaters.js `to the folder `<path to squadjs on the server>/squad-server/plugins/`
+- Copy the file `plugins/kick-cheaters.js` to the folder `<path to squadjs on the server>/squad-server/plugins/`
 
 - Apply the patch while in the folder `<path to squadjs on the server>/` 
 
-``
+```
 git apply <path to patch file> --verbose
 ```
 
