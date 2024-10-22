@@ -3,7 +3,7 @@
 
 ## English
 
-Detect and kick cheaters using ApplyExplosiveDamage spam to the server
+Detecting and removing cheaters who use ApplyExplosiveDamage to attack Squad servers
 
 Tested on SquadJS version 4.1.0
 
