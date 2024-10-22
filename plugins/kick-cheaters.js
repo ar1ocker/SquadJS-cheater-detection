@@ -1,10 +1,8 @@
-import BasePlugin from './base-plugin.js';
+import BasePlugin from "./base-plugin.js";
 
 export default class KickCheaters extends BasePlugin {
   static get description() {
-    return (
-      'Кик читеров'
-    );
+    return "Kick cheaters";
   }
 
   static get defaultEnabled() {
@@ -12,36 +10,31 @@ export default class KickCheaters extends BasePlugin {
   }
 
   static get optionsSpecification() {
-    return { };
+    return {};
   }
 
   constructor(server, options, connectors) {
     super(server, options, connectors);
 
-    this.kick_cheater = this.kick_cheater.bind(this);
+    this.kickCheater = this.kickCheater.bind(this);
   }
 
-  async kick_cheater({steamID}) {
+  async kickCheater({ eosID }) {
+    const player = await this.server.getPlayerByEOSID(eosID);
+
     this.verbose(
-        1,
-        `${steamID} will be kicked: registered ApplyExplosiveDamage exploit usage...`
+      1,
+      `${eosID} / ${player.steamID} will be kicked: registered ApplyExplosiveDamage exploit usage...`
     );
     try {
-      await this.server.rcon.kick(steamID, 'Автокик: подозрение на читы');
-      this.verbose(
-          1,
-          `${steamID} was successfully kicked.`
-      )
+      await this.server.rcon.kick(eosID, "Autokick: Suspicion of cheats");
+      this.verbose(1, `${eosID} was successfully kicked.`);
     } catch (err) {
-      this.verbose(
-          1,
-          `${steamID} was FAILED to kick.`,
-          err
-      )
+      this.verbose(1, `${eosID} was FAILED to kick.`, err);
     }
   }
 
   async mount() {
-    this.server.logParser.on('CHEATER-EXPLOSIVE-DAMAGE', this.kick_cheater);
+    this.server.logParser.on("EXCEEDING_EXPLOSIVE_LIMIT", this.kickCheater);
   }
 }

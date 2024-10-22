@@ -1,0 +1,65 @@
+diff --git a/core/log-parser/index.js b/core/log-parser/index.js
+index 1e8211b..cb84f51 100644
+--- a/core/log-parser/index.js
++++ b/core/log-parser/index.js
+@@ -19,6 +19,8 @@ export default class LogParser extends EventEmitter {
+       disconnected: {}, // holding area, cleared on map change.
+       players: {}, // persistent data, steamid, controller, suffix.
+       session: {}, // old eventstore, nonpersistent data
++      players_controllers: {},
++      // The last player with a controller, storing the last player controller avoids a situation where at other times one game controller was assigned to two players, cleared on player disconnected
+       joinRequests: []
+     };
+ 
+diff --git a/squad-server/log-parser/index.js b/squad-server/log-parser/index.js
+index 7f492c4..d6921d1 100644
+--- a/squad-server/log-parser/index.js
++++ b/squad-server/log-parser/index.js
+@@ -16,6 +16,8 @@ import RoundTickets from './round-tickets.js';
+ import RoundWinner from './round-winner.js';
+ import ServerTickRate from './server-tick-rate.js';
+ import PlayerJoinSucceeded from './player-join-succeeded.js';
++import ApplyExplosiveDamageDetector from './apply-explosive-damage-detector.js';
++
+ export default class SquadLogParser extends LogParser {
+   constructor(options) {
+     super('SquadGame.log', options);
+@@ -38,7 +40,8 @@ export default class SquadLogParser extends LogParser {
+       RoundTickets,
+       RoundWinner,
+       ServerTickRate,
+-      PlayerJoinSucceeded
++      PlayerJoinSucceeded,
++      ApplyExplosiveDamageDetector
+     ];
+   }
+ }
+diff --git a/squad-server/log-parser/player-connected.js b/squad-server/log-parser/player-connected.js
+index 7a917a7..538edf5 100644
+--- a/squad-server/log-parser/player-connected.js
++++ b/squad-server/log-parser/player-connected.js
+@@ -24,6 +24,10 @@ export default {
+       ...IDs
+     };
+ 
++    logParser.eventStore.players_controllers[data.playercontroller] = {
++      eosID: IDs.eosID
++    };
++
+     logParser.eventStore.joinRequests[data.chainID] = player;
+     logParser.eventStore.players[data.eosID] = player;
+ 
+diff --git a/squad-server/log-parser/player-disconnected.js b/squad-server/log-parser/player-disconnected.js
+index 3f76181..1b43fd8 100644
+--- a/squad-server/log-parser/player-disconnected.js
++++ b/squad-server/log-parser/player-disconnected.js
+@@ -13,6 +13,9 @@ export default {
+ 
+     logParser.eventStore.disconnected[data.eosID] = true;
+ 
++    // cleaning the controller
++    delete logParser.eventStore.players_controllers[data.playercontroller];
++
+     logParser.emit('PLAYER_DISCONNECTED', data);
+   }
+ };
